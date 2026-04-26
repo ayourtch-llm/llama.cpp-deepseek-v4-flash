@@ -61,6 +61,10 @@
 #include "ggml-cuda/tri.cuh"
 #include "ggml-cuda/cumsum.cuh"
 #include "ggml-cuda/fill.cuh"
+#include "ggml-cuda/dsv4-hc-split-sinkhorn.cuh"
+#include "ggml-cuda/dsv4-hc-expand.cuh"
+#include "ggml-cuda/dsv4-fp8-kv-quantize.cuh"
+#include "ggml-cuda/dsv4-rope-tail.cuh"
 #include "ggml.h"
 
 #include <algorithm>
@@ -2952,6 +2956,18 @@ static bool ggml_cuda_compute_forward(ggml_backend_cuda_context & ctx, struct gg
         case GGML_OP_FILL:
             ggml_cuda_op_fill(ctx, dst);
             break;
+        case GGML_OP_DSV4_HC_SPLIT_SINKHORN:
+            ggml_cuda_op_dsv4_hc_split_sinkhorn(ctx, dst);
+            break;
+        case GGML_OP_DSV4_HC_EXPAND:
+            ggml_cuda_op_dsv4_hc_expand(ctx, dst);
+            break;
+        case GGML_OP_DSV4_FP8_KV_QUANTIZE:
+            ggml_cuda_op_dsv4_fp8_kv_quantize(ctx, dst);
+            break;
+        case GGML_OP_DSV4_ROPE_TAIL:
+            ggml_cuda_op_dsv4_rope_tail(ctx, dst);
+            break;
         default:
             return false;
     }
@@ -5173,6 +5189,15 @@ static bool ggml_backend_cuda_device_supports_op(ggml_backend_dev_t dev, const g
         case GGML_OP_DIAG:
         case GGML_OP_SOLVE_TRI:
             return true;
+        case GGML_OP_DSV4_HC_SPLIT_SINKHORN:
+            return op->src[0]->type == GGML_TYPE_F32;
+        case GGML_OP_DSV4_HC_EXPAND:
+            return op->src[0]->type == GGML_TYPE_F32;
+        case GGML_OP_DSV4_FP8_KV_QUANTIZE:
+            return op->src[0]->type == GGML_TYPE_F32;
+        case GGML_OP_DSV4_ROPE_TAIL:
+            return (op->src[0]->type == GGML_TYPE_F32 || op->src[0]->type == GGML_TYPE_F16) &&
+                   op->src[0]->nb[0] == ggml_type_size(op->src[0]->type);
 
         default:
             return false;
