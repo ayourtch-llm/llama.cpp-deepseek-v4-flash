@@ -357,6 +357,14 @@ static dsv4_hc_mix dsv4_hc_pre(
     comb = ggml_reshape_3d(ctx, comb, n_hc, n_hc, n_tokens); // [src_hc, dst_hc, n_tokens]
     ggml_tensor * x_hdt = ggml_cont(ctx, ggml_permute(ctx, x, 1, 0, 2, 3)); // [hc, n_embd, n_tokens]
     ggml_tensor * pre_h1t = ggml_reshape_3d(ctx, pre, n_hc, 1, n_tokens);
+    if (pre_h1t->ne[2] == 0 || x_hdt->ne[2] == 0) {
+        fprintf(stderr, "dsv4_hc_pre: ZERO DIM! n_tokens=%d pre=[%dx%d] pre_h1t=[%dx%dx%d] x=[%dx%dx%d] x_hdt=[%dx%dx%d]\n",
+                (int)n_tokens,
+                (int)pre->ne[0], (int)pre->ne[1],
+                (int)pre_h1t->ne[0], (int)pre_h1t->ne[1], (int)pre_h1t->ne[2],
+                (int)x->ne[0], (int)x->ne[1], (int)x->ne[2],
+                (int)x_hdt->ne[0], (int)x_hdt->ne[1], (int)x_hdt->ne[2]);
+    }
     ggml_tensor * y = ggml_mul_mat(ctx, pre_h1t, x_hdt); // [1, n_embd, n_tokens]
     y = ggml_reshape_2d(ctx, y, n_embd, n_tokens);
     return { y, mixes, pre, post, comb };
