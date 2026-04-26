@@ -881,6 +881,12 @@ llm_build_deepseek4::llm_build_deepseek4(const llama_model & model, const llm_gr
     GGML_ASSERT(n_lora_o > 0);
     GGML_ASSERT(n_out_group > 0);
     GGML_ASSERT(n_embd_head_k == n_embd_head_v);
+    fprintf(stderr, "DSV4 graph build: n_tokens=%d n_embd=%d n_hc=%d n_layer=%d\n",
+            (int)n_tokens, (int)n_embd, (int)n_hc, n_layer);
+    if (n_tokens == 0) {
+        fprintf(stderr, "DSV4 graph build: ERROR n_tokens=0!\n");
+        GGML_ABORT("n_tokens must be > 0");
+    }
     ggml_tensor * inpL = build_inp_embd(model.tok_embd);
     ggml_tensor * inp_tokens = res->t_inp_tokens;
     ggml_tensor * inp_pos = build_inp_pos();
