@@ -3244,6 +3244,12 @@ struct ggml_tensor * ggml_mul_mat(
         struct ggml_context * ctx,
         struct ggml_tensor  * a,
         struct ggml_tensor  * b) {
+    if (a->ne[2] == 0 || a->ne[3] == 0 || b->ne[2] == 0 || b->ne[3] == 0) {
+        fprintf(stderr, "ggml_mul_mat: zero dimension! a=[%s] %" PRId64 "x%" PRId64 "x%" PRId64 "x%" PRId64
+                " b=[%s] %" PRId64 "x%" PRId64 "x%" PRId64 "x%" PRId64 "\n",
+                a->name, a->ne[0], a->ne[1], a->ne[2], a->ne[3],
+                b->name, b->ne[0], b->ne[1], b->ne[2], b->ne[3]);
+    }
     GGML_ASSERT(ggml_can_mul_mat(a, b));
     GGML_ASSERT(!ggml_is_transposed(a));
 
