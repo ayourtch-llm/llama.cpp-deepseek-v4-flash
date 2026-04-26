@@ -2122,6 +2122,8 @@ static common_chat_params common_chat_templates_apply_jinja(const struct common_
                                                             const struct common_chat_templates_inputs & inputs) {
     autoparser::generation_params params;
     params.tools = common_chat_tools_to_json_oaicompat(inputs.tools);
+    fprintf(stderr, "DSV4-DIAG: inputs.tools.size()=%zu params.tools.is_array()=%d params.tools.empty()=%d\n",
+            inputs.tools.size(), (int)params.tools.is_array(), (int)params.tools.empty());
     const auto & tmpl =
         params.tools.is_array() && tmpls->template_tool_use ? *tmpls->template_tool_use : *tmpls->template_default;
     const auto & src        = tmpl.source();
