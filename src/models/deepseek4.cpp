@@ -1346,18 +1346,23 @@ llm_build_deepseek4::llm_build_deepseek4(const llama_model & model, const llm_gr
         inpL = ggml_reshape_3d(ctx0, inpL, n_embd, n_hc, n_outputs);
     }
 
-    ggml_tensor * cur = dsv4_hc_head(ctx0, inpL,
-            model.output_hc_fn, model.output_hc_scale, model.output_hc_base,
-            n_embd, n_hc, inp_out_ids ? n_outputs : n_tokens,
-            norm_rms_eps, hparams.hc_eps);
-    cb(cur, "result_hc", -1);
+    const int64_t n_out = inp_out_ids ? n_outputs : n_tokens;
+    if (n_out > 0) {
+        ggml_tensor * cur = dsv4_hc_head(ctx0, inpL,
+                model.output_hc_fn, model.output_hc_scale, model.output_hc_base,
+                n_embd, n_hc, n_out,
+                norm_rms_eps, hparams.hc_eps);
+        cb(cur, "result_hc", -1);
 
-    cur = build_norm(cur, model.output_norm, nullptr, LLM_NORM_RMS, -1);
-    cb(cur, "result_norm", -1);
-    res->t_embd = cur;
+        cur = build_norm(cur, model.output_norm, nullptr, LLM_NORM_RMS, -1);
+        cb(cur, "result_norm", -1);
+        res->t_embd = cur;
 
-    cur = ggml_mul_mat(ctx0, model.output, cur);
-    cb(cur, "result_output", -1);
-    res->t_logits = cur;
-    ggml_build_forward_expand(gf, cur);
+        cur = ggml_mul_mat(ctx0, model.output, cur);
+        cb(cur, "result_output", -1);
+        res->t_logits = cur;
+        ggml_build_forward_expand(gf, cur);
+    } else {
+        ggml_build_forward_expand(gf, inpL);
+    }
 }
